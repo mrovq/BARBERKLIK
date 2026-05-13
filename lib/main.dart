@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -14,9 +15,22 @@ class BarberKlikApp extends StatelessWidget {
       title: 'BARBERKLIK',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFD4AF37), // Metallic Gold
-          brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.black,
+          secondary: Color(0xFFD4AF37), // Metallic Gold
+          surface: Color(0xFF121212), // Slightly lighter black for surfaces/cards
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Color(0xFFD4AF37),
+          elevation: 0,
+        ),
+        textTheme: GoogleFonts.montserratTextTheme(
+          ThemeData.dark().textTheme,
+        ).apply(
+          bodyColor: Colors.white,
+          displayColor: Colors.white,
         ),
         useMaterial3: true,
       ),
