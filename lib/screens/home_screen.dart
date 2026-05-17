@@ -15,6 +15,8 @@ class HomeScreen extends StatelessWidget {
               _buildHeader(context),
               _buildHeroSection(context),
               _buildGallerySection(context),
+              _buildServicesSection(context),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -219,6 +221,99 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildServicesSection(BuildContext context) {
+    final List<Map<String, dynamic>> services = [
+      {'title': 'Pangkas Rambut', 'price': 'Rp 50.000', 'duration': '30 Menit', 'icon': Icons.cut},
+      {'title': 'Cuci Rambut', 'price': 'Rp 20.000', 'duration': '15 Menit', 'icon': Icons.water_drop},
+      {'title': 'Semir Rambut', 'price': 'Rp 100.000', 'duration': '60 Menit', 'icon': Icons.color_lens},
+      {'title': 'Hair Spa', 'price': 'Rp 80.000', 'duration': '45 Menit', 'icon': Icons.spa},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Daftar Layanan',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+          ),
+          const SizedBox(height: 16),
+          ...services.map((service) => _buildServiceTile(context, service)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceTile(BuildContext context, Map<String, dynamic> service) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4AF37).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              service['icon'],
+              color: const Color(0xFFD4AF37),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  service['title'],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.schedule, size: 14, color: Colors.white54),
+                    const SizedBox(width: 4),
+                    Text(
+                      service['duration'],
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Text(
+            service['price'],
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFD4AF37),
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
