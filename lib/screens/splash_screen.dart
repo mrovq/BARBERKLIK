@@ -50,44 +50,108 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Background #000000
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Placeholder for Logo (using an icon since image is not yet available)
-              const Icon(
-                Icons.content_cut, // Scissor icon fitting for a barber
-                size: 80,
-                color: Color(0xFFD4AF37), // Metallic Gold #D4AF37
+      backgroundColor: const Color(0xFF0A0A0A), // Luxury solid black background
+      body: Stack(
+        children: [
+          // Centered branding and logo
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Elegant glowing logo container
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFD4AF37), // Golden border
+                        width: 2.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD4AF37).withOpacity(0.3), // Gold outer glow
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.content_cut,
+                        color: Color(0xFFD4AF37), // Golden scissor icon
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Title: BARBERKLIK
+                  const Text(
+                    'BARBERKLIK',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat', // Premium sans-serif font
+                      color: Color(0xFFD4AF37), // Metallic gold
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Subtitle: EXECUTIVE GROOMING
+                  Text(
+                    'EXECUTIVE GROOMING',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white70, // White with opacity
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300, // Light font weight
+                      letterSpacing: 4.0,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              // Nama Aplikasi
-              const Text(
-                'BARBERKLIK',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Slogan
-              Text(
-                'Premium Barbershop',
-                style: TextStyle(
-                  color: const Color(0xFFD4AF37).withOpacity(0.8), // Metallic Gold with opacity
-                  fontSize: 16,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          // Positioned Footer
+          Positioned(
+            bottom: 50,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Thin elegant golden divider
+                  const SizedBox(
+                    width: 180, // Narrow elegant width
+                    child: Divider(
+                      color: Color(0xFFD4AF37), // Gold divider
+                      thickness: 0.5, // Ultra-thin line
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Established text
+                  const Text(
+                    'EST. 2026',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.grey, // Grey color
+                      fontSize: 10,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
