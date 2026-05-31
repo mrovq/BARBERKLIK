@@ -5,6 +5,7 @@ import 'klikmart_screen.dart';
 import 'partner_request_screen.dart';
 import 'merchant_dashboard_screen.dart';
 import 'profile_screen.dart';
+import 'wallet_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -147,75 +148,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 2. KlikPay Card Widget
   Widget _buildKlikPayCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFD4AF37), Color(0xFFC5A028)], // Premium Gold Gradient
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const WalletScreen()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFD4AF37), Color(0xFFC5A028)], // Premium Gold Gradient
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Watermark KLIK
-          Positioned(
-            top: -10,
-            right: -5,
-            child: Text(
-              'KLIK',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.black.withOpacity(0.06),
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
-                letterSpacing: 2,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD4AF37).withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Watermark KLIK
+            Positioned(
+              top: -10,
+              right: -5,
+              child: Text(
+                'KLIK',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.black.withOpacity(0.06),
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: 2,
+                ),
               ),
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'KLIKPAY BALANCE',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.black.withOpacity(0.6),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'KLIKPAY BALANCE',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.black.withOpacity(0.6),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Rp 1.450.000',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.black,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
+                const SizedBox(height: 4),
+                Text(
+                  'Rp 1.450.000',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.black,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(child: _buildKlikPayActionButton(Icons.add_circle_outline, 'Top Up')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildKlikPayActionButton(Icons.qr_code_scanner, 'Pay')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildKlikPayActionButton(Icons.history, 'History')),
-                ],
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(child: _buildKlikPayActionButton(Icons.add_circle_outline, 'Top Up')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildKlikPayActionButton(Icons.qr_code_scanner, 'Pay')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildKlikPayActionButton(Icons.history, 'History')),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -818,6 +826,10 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (index == 2) {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const QueueStatusScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const WalletScreen()),
           );
         } else if (index == 4) {
           Navigator.of(context).push(
