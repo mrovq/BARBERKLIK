@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'queue_status_screen.dart';
 import 'klikmart_screen.dart';
+import 'partner_request_screen.dart';
+import 'merchant_dashboard_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,10 +68,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 22,
-          backgroundImage: NetworkImage(
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const PartnerRequestScreen()),
+            );
+          },
+          child: const CircleAvatar(
+            radius: 22,
+            backgroundImage: NetworkImage(
+              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -93,36 +103,43 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const Spacer(),
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.05),
-                ),
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: Color(0xFFD4AF37),
-                size: 24,
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const MerchantDashboardScreen()),
+            );
+          },
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Color(0xFFD4AF37),
+                  size: 24,
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -801,6 +818,10 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (index == 2) {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const QueueStatusScreen()),
+          );
+        } else if (index == 4) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
           );
         } else {
           setState(() {

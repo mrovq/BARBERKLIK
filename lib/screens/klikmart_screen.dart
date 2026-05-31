@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
 import 'queue_status_screen.dart';
+import 'profile_screen.dart';
 
 class KlikMartScreen extends StatefulWidget {
   const KlikMartScreen({super.key});
@@ -532,6 +533,10 @@ class _KlikMartScreenState extends State<KlikMartScreen> {
         } else if (index == 2) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const QueueStatusScreen()),
+          );
+        } else if (index == 4) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
           );
         }
       },
