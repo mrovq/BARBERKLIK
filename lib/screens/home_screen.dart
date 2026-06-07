@@ -9,6 +9,7 @@ import 'wallet_screen.dart';
 import 'klikcut_booking_page.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'explore_barbershop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1006,7 +1007,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ExploreBarbershopScreen(),
+                  ),
+                );
+              },
               child: Text(
                 'View All',
                 style: GoogleFonts.plusJakartaSans(
