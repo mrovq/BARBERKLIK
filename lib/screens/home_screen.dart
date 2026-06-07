@@ -176,7 +176,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _markers = tempMarkers;
-      _selectedBarber = _barbersData[0]; // Set default pilihan pertama
     });
   }
 
@@ -451,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Text(
-              'Alexander',
+              'Moh. Rofiqi A.Z',
               style: GoogleFonts.plusJakartaSans(
                 color: const Color(0xFFD4AF37), // Gold Color
                 fontSize: 18,
@@ -998,7 +997,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Nearby Barbers',
+              AppLocalizations.of(context)!.nearbyBarbers,
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white,
                 fontSize: 18,
@@ -1014,7 +1013,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               child: Text(
-                'View All',
+                AppLocalizations.of(context)!.viewAll,
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFFD4AF37),
                   fontSize: 12,
@@ -1125,102 +1124,130 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Stack(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              _selectedBarber!['image'],
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _selectedBarber!['name'],
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  _selectedBarber!['image'],
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
-                                      Icons.location_on_outlined,
-                                      color: Color(0xFFD4AF37),
-                                      size: 13,
-                                    ),
-                                    const SizedBox(width: 4),
                                     Text(
-                                      _selectedBarber!['distance'],
-                                      style: GoogleFonts.plusJakartaSans(
-                                        color: Colors.white70,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Icon(
-                                      Icons.star,
-                                      color: Color(0xFFD4AF37),
-                                      size: 13,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      _selectedBarber!['rating'].toString(),
+                                      _selectedBarber!['name'],
                                       style: GoogleFonts.plusJakartaSans(
                                         color: Colors.white,
-                                        fontSize: 11,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_outlined,
+                                          color: Color(0xFFD4AF37),
+                                          size: 13,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _selectedBarber!['distance'],
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: Colors.white70,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Icon(
+                                          Icons.star,
+                                          color: Color(0xFFD4AF37),
+                                          size: 13,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _selectedBarber!['rating'].toString(),
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Tombol Emas 'Book Now' untuk ke KlikQueue (QueueStatusScreen)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const QueueStatusScreen(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFD4AF37), Color(0xFFC5A028)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFD4AF37).withOpacity(0.2),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                               ),
-                              child: Text(
-                                'Book Now',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.black,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 8),
+                              // Tombol Emas 'Book Now' untuk ke KlikQueue (QueueStatusScreen)
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const QueueStatusScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFFD4AF37), Color(0xFFC5A028)],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFFD4AF37).withOpacity(0.2),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.bookNow,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.black,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16), // Ruang ekstra agar tidak terhalang close button
+                            ],
+                          ),
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedBarber = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white60,
+                                  size: 14,
                                 ),
                               ),
                             ),

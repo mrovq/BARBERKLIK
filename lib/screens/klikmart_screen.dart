@@ -206,7 +206,7 @@ class _KlikMartScreenState extends State<KlikMartScreen> {
                 ),
               ),
               Text(
-                'View All',
+                AppLocalizations.of(context)!.viewAll,
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFFD4AF37),
                   fontSize: 12,

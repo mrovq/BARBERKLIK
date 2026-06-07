@@ -85,4 +85,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get securityAndSupport => 'Security & Support';
+
+  @override
+  String get currentSession => 'CURRENT SESSION';
+
+  @override
+  String get queueNumber => 'Queue Number';
+
+  @override
+  String get estWaitTime => 'Est. Wait Time';
+
+  @override
+  String peopleAheadOfYou(int count) {
+    return '$count people ahead of you';
+  }
+
+  @override
+  String get cancelQueue => 'Cancel\nQueue';
+
+  @override
+  String get viewDirections => 'View\nDirections';
+
+  @override
+  String get nearbyOutlets => 'Nearby Outlets';
+
+  @override
+  String get viewMap => 'View Map';
 }

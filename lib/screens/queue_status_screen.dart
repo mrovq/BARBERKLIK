@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import 'home_screen.dart';
 import 'klikmart_screen.dart';
 import 'profile_screen.dart';
@@ -70,6 +71,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
 
   // 2. Current Session Card Widget
   Widget _buildCurrentSessionCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20.0),
@@ -100,7 +102,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'CURRENT SESSION',
+                l10n.currentSession,
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFFD4AF37).withOpacity(0.8), // Gold/Bronze hue
                   fontSize: 11,
@@ -147,7 +149,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Queue Number',
+                        l10n.queueNumber,
                         style: GoogleFonts.plusJakartaSans(
                           color: Colors.white54,
                           fontSize: 12,
@@ -175,7 +177,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Est. Wait Time',
+                        l10n.estWaitTime,
                         style: GoogleFonts.plusJakartaSans(
                           color: Colors.white54,
                           fontSize: 12,
@@ -216,7 +218,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '2 people ahead of you',
+                l10n.peopleAheadOfYou(2),
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white70,
                   fontSize: 12,
@@ -266,7 +268,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                       ),
                     ),
                     child: Text(
-                      'Cancel\nQueue',
+                      l10n.cancelQueue,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
@@ -302,7 +304,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                       ),
                     ),
                     child: Text(
-                      'View\nDirections',
+                      l10n.viewDirections,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
@@ -322,6 +324,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
 
   // 3. Nearby Outlets Widget List
   Widget _buildNearbyOutletsSection() {
+    final l10n = AppLocalizations.of(context)!;
     final List<Map<String, dynamic>> outlets = [
       {
         'name': 'The Barber Room',
@@ -353,7 +356,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Nearby Outlets',
+              l10n.nearbyOutlets,
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white,
                 fontSize: 18,
@@ -363,7 +366,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
             TextButton(
               onPressed: () {},
               child: Text(
-                'View Map',
+                l10n.viewMap,
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFFD4AF37),
                   fontSize: 12,
@@ -491,6 +494,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
 
   // 4. Navigation Bar Widget
   Widget _buildBottomNavigationBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       height: 70,
@@ -511,11 +515,11 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.home_outlined, 'Home', 0),
-          _buildNavItem(Icons.storefront_outlined, 'Mart', 1),
-          _buildNavItem(Icons.calendar_month_rounded, 'Booking', 2),
-          _buildNavItem(Icons.account_balance_wallet_outlined, 'Wallet', 3),
-          _buildNavItem(Icons.person_outline_rounded, 'Profile', 4),
+          _buildNavItem(Icons.home_outlined, l10n.home, 0),
+          _buildNavItem(Icons.storefront_outlined, l10n.mart, 1),
+          _buildNavItem(Icons.calendar_month_rounded, l10n.booking, 2),
+          _buildNavItem(Icons.account_balance_wallet_outlined, l10n.wallet, 3),
+          _buildNavItem(Icons.person_outline_rounded, l10n.profile, 4),
         ],
       ),
     );

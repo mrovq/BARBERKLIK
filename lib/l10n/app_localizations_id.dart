@@ -85,4 +85,30 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get securityAndSupport => 'Keamanan & Dukungan';
+
+  @override
+  String get currentSession => 'SESI SAAT INI';
+
+  @override
+  String get queueNumber => 'Nomor Antrean';
+
+  @override
+  String get estWaitTime => 'Est. Waktu Tunggu';
+
+  @override
+  String peopleAheadOfYou(int count) {
+    return '$count orang di depan Anda';
+  }
+
+  @override
+  String get cancelQueue => 'Batalkan\nAntrean';
+
+  @override
+  String get viewDirections => 'Lihat\nRute';
+
+  @override
+  String get nearbyOutlets => 'Outlet Terdekat';
+
+  @override
+  String get viewMap => 'Lihat Peta';
 }

@@ -24,5 +24,21 @@
   "bookNow": "Pesan Sekarang",
   "language": "Bahasa",
   "accountManagement": "Manajemen Akun",
-  "securityAndSupport": "Keamanan & Dukungan"
+  "securityAndSupport": "Keamanan & Dukungan",
+  "currentSession": "SESI SAAT INI",
+  "queueNumber": "Nomor Antrean",
+  "estWaitTime": "Est. Waktu Tunggu",
+  "peopleAheadOfYou": "{count} orang di depan Anda",
+  "@peopleAheadOfYou": {
+    "description": "Number of people ahead in the queue",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelQueue": "Batalkan\nAntrean",
+  "viewDirections": "Lihat\nRute",
+  "nearbyOutlets": "Outlet Terdekat",
+  "viewMap": "Lihat Peta"
 }

@@ -24,5 +24,21 @@
   "bookNow": "Book Now",
   "language": "Language",
   "accountManagement": "Account Management",
-  "securityAndSupport": "Security & Support"
+  "securityAndSupport": "Security & Support",
+  "currentSession": "CURRENT SESSION",
+  "queueNumber": "Queue Number",
+  "estWaitTime": "Est. Wait Time",
+  "peopleAheadOfYou": "{count} people ahead of you",
+  "@peopleAheadOfYou": {
+    "description": "Number of people ahead in the queue",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelQueue": "Cancel\nQueue",
+  "viewDirections": "View\nDirections",
+  "nearbyOutlets": "Nearby Outlets",
+  "viewMap": "View Map"
 }

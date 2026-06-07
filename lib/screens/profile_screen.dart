@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 16),
         // Nama pengguna: Alexander (diperbarui sesuai request)
         Text(
-          'Alexander',
+          'Moh. Rofiqi A.Z',
           style: GoogleFonts.plusJakartaSans(
             color: Colors.white,
             fontSize: 20,

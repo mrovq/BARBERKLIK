@@ -253,6 +253,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security & Support'**
   String get securityAndSupport;
+
+  /// No description provided for @currentSession.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT SESSION'**
+  String get currentSession;
+
+  /// No description provided for @queueNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue Number'**
+  String get queueNumber;
+
+  /// No description provided for @estWaitTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Est. Wait Time'**
+  String get estWaitTime;
+
+  /// Number of people ahead in the queue
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people ahead of you'**
+  String peopleAheadOfYou(int count);
+
+  /// No description provided for @cancelQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel\nQueue'**
+  String get cancelQueue;
+
+  /// No description provided for @viewDirections.
+  ///
+  /// In en, this message translates to:
+  /// **'View\nDirections'**
+  String get viewDirections;
+
+  /// No description provided for @nearbyOutlets.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby Outlets'**
+  String get nearbyOutlets;
+
+  /// No description provided for @viewMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View Map'**
+  String get viewMap;
 }
 
 class _AppLocalizationsDelegate
