@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'home_screen.dart';
 import 'klikmart_screen.dart';
 import 'queue_status_screen.dart';
@@ -12,6 +14,30 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // File untuk menyimpan foto profil yang dipilih dari galeri
+  File? _imageFile;
+
+  /// Fungsi asynchronous untuk mengambil foto dari galeri menggunakan package image_picker.
+  /// Setelah foto berhasil dipilih, state _imageFile akan diperbarui sehingga UI di-render ulang.
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85, // Mengompresi kualitas gambar (85%) untuk optimasi performa & memori
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      // Menangkap error jika terjadi kesalahan akses galeri atau pemilihan foto
+      debugPrint('Error picking image from gallery: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,25 +100,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileHeader() {
     return Column(
       children: [
+        // Menggunakan BoxDecoration untuk memberikan efek pendaran halus (glow) emas di sekitar lingkaran foto
         Container(
-          padding: const EdgeInsets.all(4), // Space for gold border
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFD4AF37), // Gold border
-              width: 2.0,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFD4AF37).withOpacity(0.25),
+                blurRadius: 20,
+                spreadRadius: 4,
+              ),
+            ],
           ),
-          child: const CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80', // Rofiqi Az profile photo
-            ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Elemen Dasar: CircleAvatar besar dengan radius 60
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: const Color(0xFFD4AF37), // Bingkai (border) tebal berwarna emas
+                child: CircleAvatar(
+                  radius: 56, // Ukuran sedikit lebih kecil untuk memperlihatkan bingkai emas
+                  backgroundColor: const Color(0xFF141414),
+                  // Menampilkan foto: jika _imageFile null, gunakan placeholder NetworkImage. Jika ada, gunakan FileImage.
+                  backgroundImage: _imageFile != null
+                      ? FileImage(_imageFile!)
+                      : const NetworkImage(
+                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80',
+                        ) as ImageProvider,
+                ),
+              ),
+              // Tombol Aksi di pojok kanan bawah
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _pickImageFromGallery,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37), // Tombol berbentuk lingkaran emas kecil
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF0A0A0A), // Pemisah gelap dengan foto utama
+                        width: 2.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt, // Ikon kamera hitam di tengah
+                      color: Colors.black,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
+        // Nama pengguna: Alexander (diperbarui sesuai request)
         Text(
-          'Rofiqi Az',
+          'Alexander',
           style: GoogleFonts.plusJakartaSans(
             color: Colors.white,
             fontSize: 20,
@@ -100,6 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        // Badge: GOLD MEMBER tetap dipertahankan
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
