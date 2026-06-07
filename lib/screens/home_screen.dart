@@ -50,25 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const KlikCutBookingPage(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                // Menggunakan ScaleTransition dengan kurva fastOutSlowIn
-                // Memulai animasi scale-up dari Alignment.bottomRight (arah tombol FAB)
-                return ScaleTransition(
-                  scale: Tween<double>(begin: 0.0, end: 1.0).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.fastOutSlowIn,
-                    ),
-                  ),
-                  alignment: Alignment.bottomRight,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 500),
+            MaterialPageRoute(
+              builder: (context) => const KlikCutBookingPage(),
             ),
           );
         },
@@ -291,71 +274,80 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         // Left - KlikCut (Tall container)
         Expanded(
-          child: Container(
-            height: 160,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.03)),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: -15,
-                  right: -15,
-                  child: Opacity(
-                    opacity: 0.1,
-                    child: Icon(
-                      Icons.content_cut,
-                      size: 100,
-                      color: const Color(0xFFD4AF37),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const KlikCutBookingPage(),
+                ),
+              );
+            },
+            child: Container(
+              height: 160,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.03)),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    bottom: -15,
+                    right: -15,
+                    child: Opacity(
+                      opacity: 0.1,
+                      child: Icon(
+                        Icons.content_cut,
+                        size: 100,
+                        color: const Color(0xFFD4AF37),
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'KlikCut',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFFD4AF37),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'KlikCut',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: const Color(0xFFD4AF37),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Barber to Home',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white70,
-                              fontSize: 11,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Barber to Home',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
                             ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0A0A0A),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.2)),
                           ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0A0A0A),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.2)),
+                          child: const Icon(
+                            Icons.content_cut,
+                            color: Color(0xFFD4AF37),
+                            size: 20,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.content_cut,
-                          color: Color(0xFFD4AF37),
-                          size: 20,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
