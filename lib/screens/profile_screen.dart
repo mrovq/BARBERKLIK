@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,11 +14,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // File untuk menyimpan foto profil yang dipilih dari galeri
-  File? _imageFile;
+  // Menggunakan Uint8List untuk menyimpan bytes foto agar kompatibel dengan Flutter Web dan Mobile (menghindari error Unsupported operation: _Namespace)
+  Uint8List? _imageBytes;
 
   /// Fungsi asynchronous untuk mengambil foto dari galeri menggunakan package image_picker.
-  /// Setelah foto berhasil dipilih, state _imageFile akan diperbarui sehingga UI di-render ulang.
+  /// Setelah foto berhasil dipilih, bytes gambar akan dibaca dan state _imageBytes akan diperbarui.
   Future<void> _pickImageFromGallery() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -28,8 +28,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (pickedFile != null) {
+        // Membaca bytes gambar secara asynchronous agar kompatibel di web & mobile
+        final Uint8List bytes = await pickedFile.readAsBytes();
         setState(() {
-          _imageFile = File(pickedFile.path);
+          _imageBytes = bytes;
         });
       }
     } catch (e) {
@@ -122,9 +124,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: CircleAvatar(
                   radius: 56, // Ukuran sedikit lebih kecil untuk memperlihatkan bingkai emas
                   backgroundColor: const Color(0xFF141414),
-                  // Menampilkan foto: jika _imageFile null, gunakan placeholder NetworkImage. Jika ada, gunakan FileImage.
-                  backgroundImage: _imageFile != null
-                      ? FileImage(_imageFile!)
+                  // Menampilkan foto: jika _imageBytes null, gunakan placeholder NetworkImage. Jika ada, gunakan MemoryImage.
+                  backgroundImage: _imageBytes != null
+                      ? MemoryImage(_imageBytes!)
                       : const NetworkImage(
                           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80',
                         ) as ImageProvider,
