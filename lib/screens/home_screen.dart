@@ -7,6 +7,8 @@ import 'merchant_dashboard_screen.dart';
 import 'profile_screen.dart';
 import 'wallet_screen.dart';
 import 'klikcut_booking_page.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +18,356 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  // State Variables untuk Integrasi Google Maps & Geolocator
+  GoogleMapController? _mapController;
+  Position? _currentPosition;
+  Set<Marker> _markers = {};
+  bool _isLoadingLocation = true;
+  bool _permissionDenied = false;
+  Map<String, dynamic>? _selectedBarber;
+
+  // Data Mock Barbershop
+  final List<Map<String, dynamic>> _barbersData = [
+    {
+      'id': 'barber_1',
+      'name': 'The Heritage Shop',
+      'distance': '0.8 km',
+      'rating': 4.9,
+      'image': 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      'id': 'barber_2',
+      'name': "Gentle's Cut",
+      'distance': '1.2 km',
+      'rating': 4.8,
+      'image': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      'id': 'barber_3',
+      'name': 'Gold Cut Studio',
+      'distance': '2.0 km',
+      'rating': 4.7,
+      'image': 'https://images.unsplash.com/photo-1593702275687-f8b402bf1fb5?auto=format&fit=crop&w=400&q=80',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocationAndMarkers();
+  }
+
+  /// Memulai proses geolokasi dan konfigurasi marker peta
+  Future<void> _initLocationAndMarkers() async {
+    try {
+      final position = await _determinePosition();
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+        _permissionDenied = false;
+        _setupMarkers(position);
+      });
+      
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(position.latitude, position.longitude),
+            14.5,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error getting location (falling back to Jakarta default): $e');
+      setState(() {
+        _isLoadingLocation = false;
+        _permissionDenied = true;
+        // Lokasi default Jakarta (-6.2000, 106.8166) jika izin ditolak
+        final defaultPosition = Position(
+          latitude: -6.2000,
+          longitude: 106.8166,
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          altitudeAccuracy: 0.0,
+          heading: 0.0,
+          headingAccuracy: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        );
+        _currentPosition = defaultPosition;
+        _setupMarkers(defaultPosition);
+      });
+    }
+  }
+
+  /// Meminta izin lokasi dan mengembalikan posisi GPS pengguna
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    } 
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  /// Membuat Marker di sekitar posisi pengguna
+  void _setupMarkers(Position position) {
+    final Set<Marker> tempMarkers = {};
+    
+    // 1. Marker Posisi Pengguna (Biru / Azure)
+    tempMarkers.add(
+      Marker(
+        markerId: const MarkerId('user_location'),
+        position: LatLng(position.latitude, position.longitude),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: const InfoWindow(title: 'Posisi Anda'),
+      ),
+    );
+
+    // Offsets koordinat simulasi untuk barbershop di sekitar pengguna
+    final List<LatLng> offsets = [
+      LatLng(position.latitude + 0.003, position.longitude + 0.002),
+      LatLng(position.latitude - 0.002, position.longitude + 0.004),
+      LatLng(position.latitude + 0.001, position.longitude - 0.003),
+    ];
+
+    // 2. Marker Emas (Custom Gold/Yellow Hue 42.0) untuk Barbershops
+    for (int i = 0; i < _barbersData.length; i++) {
+      final barber = _barbersData[i];
+      tempMarkers.add(
+        Marker(
+          markerId: MarkerId(barber['id']),
+          position: offsets[i],
+          icon: BitmapDescriptor.defaultMarkerWithHue(42.0),
+          onTap: () {
+            setState(() {
+              _selectedBarber = barber;
+            });
+          },
+          infoWindow: InfoWindow(
+            title: barber['name'],
+            snippet: '${barber['distance']} • Rating: ${barber['rating']}',
+          ),
+        ),
+      );
+    }
+
+    setState(() {
+      _markers = tempMarkers;
+      _selectedBarber = _barbersData[0]; // Set default pilihan pertama
+    });
+  }
+
+  // Gaya Google Maps bertema Luxury Dark Mode (JSON format)
+  static const String _mapDarkStyle = '''
+  [
+    {
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#181818"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.icon",
+      "stylers": [
+        {
+          "visibility": "off"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#212121"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.country",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#9e9e9e"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.land_parcel",
+      "stylers": [
+        {
+          "visibility": "off"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.locality",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#bdbdbd"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#121212"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#616161"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#1b1b1b"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": "#2c2c2c"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#8a8a8a"
+        }
+      ]
+    },
+    {
+      "featureType": "road.arterial",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#373737"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#3c3c3c"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway.controlled_access",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#4e4e4e"
+        }
+      ]
+    },
+    {
+      "featureType": "road.local",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#616161"
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#000000"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#3d3d3d"
+        }
+      ]
+    }
+  ]
+  ''';
+
   int _selectedIndex = 0;
 
   @override
@@ -637,29 +989,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 6. Nearby Barbers Widget
+  // 6. Nearby Barbers Widget dengan Peta Google Maps Asli & Geolocator
   Widget _buildNearbyBarbersSection() {
-    final List<Map<String, dynamic>> barbers = [
-      {
-        'name': 'The Heritage Shop',
-        'distance': '0.8 km away',
-        'rating': 4.9,
-        'image': 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=400&q=80',
-      },
-      {
-        'name': "Gentle's Cut",
-        'distance': '1.2 km away',
-        'rating': 4.8,
-        'image': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80',
-      },
-      {
-        'name': 'Gold Cut Studio',
-        'distance': '2.0 km away',
-        'rating': 4.7,
-        'image': 'https://images.unsplash.com/photo-1593702275687-f8b402bf1fb5?auto=format&fit=crop&w=400&q=80',
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -688,109 +1019,212 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: barbers.length,
-            itemBuilder: (context, index) {
-              final barber = barbers[index];
-              return Container(
-                width: 200,
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.03)),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
+        Container(
+          height: 320,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF141414),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.05),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                // 1. Google Map Utama
+                if (_currentPosition != null)
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                      zoom: 14.5,
+                    ),
+                    markers: _markers,
+                    myLocationButtonEnabled: false,
+                    myLocationEnabled: false,
+                    zoomControlsEnabled: false,
+                    mapToolbarEnabled: false,
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                      _mapController!.setMapStyle(_mapDarkStyle);
+                    },
+                  )
+                else
+                  const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+                    ),
+                  ),
+
+                // 2. Pesan Peringatan Jika Permission Denied
+                if (_permissionDenied)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
                         children: [
-                          Image.network(
-                            barber['image'],
-                            height: 120,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Color(0xFFD4AF37),
-                                    size: 12,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    barber['rating'].toString(),
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                          const Icon(Icons.info_outline, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Izin lokasi ditolak. Menampilkan lokasi default.',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              barber['name'],
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                // 3. Detail Card Overlay (Melayang di bawah)
+                if (_selectedBarber != null)
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A0A0A).withOpacity(0.95), // Solid dark transparan
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withOpacity(0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              _selectedBarber!['image'],
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
                             ),
-                            const SizedBox(height: 4),
-                            Row(
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.grey,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
                                 Text(
-                                  barber['distance'],
+                                  _selectedBarber!['name'],
                                   style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.grey,
-                                    fontSize: 11,
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on_outlined,
+                                      color: Color(0xFFD4AF37),
+                                      size: 13,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _selectedBarber!['distance'],
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: Colors.white70,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Icon(
+                                      Icons.star,
+                                      color: Color(0xFFD4AF37),
+                                      size: 13,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _selectedBarber!['rating'].toString(),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Tombol Emas 'Book Now' untuk ke KlikQueue (QueueStatusScreen)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const QueueStatusScreen(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFD4AF37), Color(0xFFC5A028)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFD4AF37).withOpacity(0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Book Now',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.black,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+              ],
+            ),
           ),
         ),
       ],
