@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../main.dart';
 import '../l10n/app_localizations.dart';
 import 'queue_status_screen.dart';
 import 'klikmart_screen.dart';
@@ -431,11 +433,18 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (context) => const PartnerRequestScreen()),
             );
           },
-          child: const CircleAvatar(
-            radius: 22,
-            backgroundImage: NetworkImage(
-              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-            ),
+          child: ValueListenableBuilder<Uint8List?>(
+            valueListenable: userProfileImageNotifier,
+            builder: (context, imageBytes, child) {
+              return CircleAvatar(
+                radius: 22,
+                backgroundImage: imageBytes != null
+                    ? MemoryImage(imageBytes)
+                    : const NetworkImage(
+                        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+                      ) as ImageProvider,
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),

@@ -16,11 +16,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Menggunakan Uint8List untuk menyimpan bytes foto agar kompatibel dengan Flutter Web dan Mobile (menghindari error Unsupported operation: _Namespace)
-  Uint8List? _imageBytes;
-
   /// Fungsi asynchronous untuk mengambil foto dari galeri menggunakan package image_picker.
-  /// Setelah foto berhasil dipilih, bytes gambar akan dibaca dan state _imageBytes akan diperbarui.
+  /// Setelah foto berhasil dipilih, bytes gambar akan dibaca dan notifier global userProfileImageNotifier diperbarui.
   Future<void> _pickImageFromGallery() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -32,9 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (pickedFile != null) {
         // Membaca bytes gambar secara asynchronous agar kompatibel di web & mobile
         final Uint8List bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _imageBytes = bytes;
-        });
+        userProfileImageNotifier.value = bytes;
       }
     } catch (e) {
       // Menangkap error jika terjadi kesalahan akses galeri atau pemilihan foto
@@ -126,19 +121,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             alignment: Alignment.center,
             children: [
               // Elemen Dasar: CircleAvatar besar dengan radius 60
-              CircleAvatar(
-                radius: 60,
-                backgroundColor: const Color(0xFFD4AF37), // Bingkai (border) tebal berwarna emas
-                child: CircleAvatar(
-                  radius: 56, // Ukuran sedikit lebih kecil untuk memperlihatkan bingkai emas
-                  backgroundColor: const Color(0xFF141414),
-                  // Menampilkan foto: jika _imageBytes null, gunakan placeholder NetworkImage. Jika ada, gunakan MemoryImage.
-                  backgroundImage: _imageBytes != null
-                      ? MemoryImage(_imageBytes!)
-                      : const NetworkImage(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80',
-                        ) as ImageProvider,
-                ),
+              ValueListenableBuilder<Uint8List?>(
+                valueListenable: userProfileImageNotifier,
+                builder: (context, imageBytes, child) {
+                  return CircleAvatar(
+                    radius: 60,
+                    backgroundColor: const Color(0xFFD4AF37), // Bingkai (border) tebal berwarna emas
+                    child: CircleAvatar(
+                      radius: 56, // Ukuran sedikit lebih kecil untuk memperlihatkan bingkai emas
+                      backgroundColor: const Color(0xFF141414),
+                      // Menampilkan foto: jika imageBytes null, gunakan placeholder NetworkImage. Jika ada, gunakan MemoryImage.
+                      backgroundImage: imageBytes != null
+                          ? MemoryImage(imageBytes)
+                          : const NetworkImage(
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80',
+                            ) as ImageProvider,
+                    ),
+                  );
+                },
               ),
               // Tombol Aksi di pojok kanan bawah
               Positioned(

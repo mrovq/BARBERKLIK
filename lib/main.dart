@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,6 +7,9 @@ import 'screens/splash_screen.dart';
 
 // Global ValueNotifier untuk mengontrol Locale yang sedang aktif secara real-time
 final ValueNotifier<Locale> appLocaleNotifier = ValueNotifier<Locale>(const Locale('en'));
+
+// Global ValueNotifier untuk menyimpan data foto profil (bytes) agar real-time di seluruh screen
+final ValueNotifier<Uint8List?> userProfileImageNotifier = ValueNotifier<Uint8List?>(null);
 
 void main() {
   runApp(const BarberKlikApp());
