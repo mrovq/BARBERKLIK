@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../l10n/app_localizations.dart';
+import '../main.dart';
 import 'home_screen.dart';
 import 'klikmart_screen.dart';
 import 'queue_status_screen.dart';
@@ -42,13 +44,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A), // Luxurious solid black #0A0A0A
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A0A0A),
         elevation: 0,
         title: Text(
-          'PROFILE',
+          l10n.profile,
           style: GoogleFonts.plusJakartaSans(
             color: const Color(0xFFD4AF37), // Gold
             fontWeight: FontWeight.bold,
@@ -77,17 +80,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
             _buildPointsCard(),
             const SizedBox(height: 28),
-            _buildSectionHeader('Account Management'),
+            _buildSectionHeader(l10n.accountManagement),
             const SizedBox(height: 10),
-            _buildMenuItem(Icons.account_balance_wallet_outlined, 'My Wallet', () {}),
-            _buildMenuItem(Icons.history_rounded, 'Booking History', () {}),
-            _buildMenuItem(Icons.location_on_outlined, 'Saved Addresses', () {}),
-            _buildMenuItem(Icons.credit_card_rounded, 'Payment Methods', () {}),
+            _buildMenuItem(Icons.account_balance_wallet_outlined, l10n.myWallet, () {}),
+            _buildMenuItem(Icons.history_rounded, l10n.bookingHistory, () {}),
+            _buildMenuItem(Icons.location_on_outlined, l10n.savedAddresses, () {}),
+            _buildMenuItem(Icons.credit_card_rounded, l10n.paymentMethods, () {}),
+            
+            // Dropdown Pilihan Bahasa bertema Luxury Dark Mode
+            _buildLanguageMenuItem(),
+            
             const SizedBox(height: 24),
-            _buildSectionHeader('Security & Support'),
+            _buildSectionHeader(l10n.securityAndSupport),
             const SizedBox(height: 10),
-            _buildMenuItem(Icons.security_rounded, 'Security Settings', () {}),
-            _buildMenuItem(Icons.help_outline_rounded, 'Help Center', () {}),
+            _buildMenuItem(Icons.security_rounded, l10n.securitySettings, () {}),
+            _buildMenuItem(Icons.help_outline_rounded, l10n.helpCenter, () {}),
             const SizedBox(height: 32),
             _buildLogoutButton(),
             const SizedBox(height: 120), // Padding above bottom navigation bar
@@ -100,6 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // 1. Profile Header Widget
   Widget _buildProfileHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         // Menggunakan BoxDecoration untuk memberikan efek pendaran halus (glow) emas di sekitar lingkaran foto
@@ -188,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           child: Text(
-            'GOLD MEMBER',
+            l10n.goldMember,
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFD4AF37),
               fontSize: 11,
@@ -203,6 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // 2. Points Card Widget
   Widget _buildPointsCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20.0),
@@ -225,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Loyalty Points',
+                l10n.loyaltyPoints,
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white54,
                   fontSize: 12,
@@ -253,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            '550 pts until next reward tier',
+            l10n.pointsUntilNextReward,
             style: GoogleFonts.plusJakartaSans(
               color: Colors.white38,
               fontSize: 10,
@@ -312,6 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // 4. Logout Button Widget
   Widget _buildLogoutButton() {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -325,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         child: Text(
-          'Logout',
+          l10n.logout,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.bold,
@@ -335,8 +345,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Widget Dropdown Bahasa khusus bertema Luxury Dark Mode
+  Widget _buildLanguageMenuItem() {
+    final l10n = AppLocalizations.of(context)!;
+    final isIndonesian = appLocaleNotifier.value.languageCode == 'id';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141414),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.02)),
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.language_rounded,
+          color: Color(0xFFD4AF37),
+        ),
+        title: Text(
+          l10n.language,
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        trailing: DropdownButton<String>(
+          value: isIndonesian ? 'id' : 'en',
+          dropdownColor: const Color(0xFF141414),
+          underline: const SizedBox(),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white54),
+          style: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFFD4AF37),
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+          onChanged: (String? newLanguage) {
+            if (newLanguage != null) {
+              setState(() {
+                appLocaleNotifier.value = Locale(newLanguage);
+              });
+            }
+          },
+          items: const [
+            DropdownMenuItem(
+              value: 'en',
+              child: Text('English'),
+            ),
+            DropdownMenuItem(
+              value: 'id',
+              child: Text('Indonesia'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // 5. Navigation Bar Widget
   Widget _buildBottomNavigationBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       height: 70,
@@ -357,11 +425,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.home_outlined, 'Home', 0),
-          _buildNavItem(Icons.storefront_outlined, 'Mart', 1),
-          _buildNavItem(Icons.calendar_month_outlined, 'Booking', 2),
-          _buildNavItem(Icons.account_balance_wallet_outlined, 'Wallet', 3),
-          _buildNavItem(Icons.person_rounded, 'Profile', 4),
+          _buildNavItem(Icons.home_outlined, l10n.home, 0),
+          _buildNavItem(Icons.storefront_outlined, l10n.mart, 1),
+          _buildNavItem(Icons.calendar_month_outlined, l10n.booking, 2),
+          _buildNavItem(Icons.account_balance_wallet_outlined, l10n.wallet, 3),
+          _buildNavItem(Icons.person_rounded, l10n.profile, 4),
         ],
       ),
     );

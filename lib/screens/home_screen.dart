@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import 'queue_status_screen.dart';
 import 'klikmart_screen.dart';
 import 'partner_request_screen.dart';
@@ -445,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hello,',
+              AppLocalizations.of(context)!.hello,
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white70,
                 fontSize: 12,
@@ -551,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'KLIKPAY BALANCE',
+                  AppLocalizations.of(context)!.walletBalance,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.black.withOpacity(0.6),
                     fontSize: 11,
@@ -1260,11 +1261,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.home_filled, 'Home', 0),
-          _buildNavItem(Icons.storefront_rounded, 'Mart', 1),
-          _buildNavItem(Icons.calendar_month_outlined, 'Booking', 2),
-          _buildNavItem(Icons.account_balance_wallet_outlined, 'Wallet', 3),
-          _buildNavItem(Icons.person_outline_rounded, 'Profile', 4),
+          _buildNavItem(Icons.home_filled, AppLocalizations.of(context)!.home, 0),
+          _buildNavItem(Icons.storefront_rounded, AppLocalizations.of(context)!.mart, 1),
+          _buildNavItem(Icons.calendar_month_outlined, AppLocalizations.of(context)!.booking, 2),
+          _buildNavItem(Icons.account_balance_wallet_outlined, AppLocalizations.of(context)!.wallet, 3),
+          _buildNavItem(Icons.person_outline_rounded, AppLocalizations.of(context)!.profile, 4),
         ],
       ),
     );
