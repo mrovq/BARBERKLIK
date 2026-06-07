@@ -6,6 +6,7 @@ import 'partner_request_screen.dart';
 import 'merchant_dashboard_screen.dart';
 import 'profile_screen.dart';
 import 'wallet_screen.dart';
+import 'klikcut_booking_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,7 +49,28 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _buildBottomNavigationBar(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Action for booking / scissor FAB
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const KlikCutBookingPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                // Menggunakan ScaleTransition dengan kurva fastOutSlowIn
+                // Memulai animasi scale-up dari Alignment.bottomRight (arah tombol FAB)
+                return ScaleTransition(
+                  scale: Tween<double>(begin: 0.0, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.fastOutSlowIn,
+                    ),
+                  ),
+                  alignment: Alignment.bottomRight,
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 500),
+            ),
+          );
         },
         backgroundColor: const Color(0xFFD4AF37),
         elevation: 4,
