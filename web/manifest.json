@@ -1,6 +1,6 @@
 {
-    "name": "barberklik",
-    "short_name": "barberklik",
+    "name": "BarberKlik",
+    "short_name": "BarberKlik",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
