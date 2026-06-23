@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import 'queue_status_screen.dart';
@@ -423,6 +425,829 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ================= INTERACTIVE WALLET & PROMO FLOWS =================
+
+  void _showTopUpBottomSheet() {
+    int selectedAmount = 100000;
+    String paymentMethod = 'Bank Transfer';
+    bool isLoading = false;
+    bool isSuccess = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF141414),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            if (isSuccess) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                height: 350,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFFD4AF37),
+                        size: 64,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Top Up Success!',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Successfully added ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(selectedAmount)} to your KlikPay Wallet via $paymentMethod.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (isLoading) {
+              return SizedBox(
+                height: 350,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Processing Payment...',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24.0,
+                right: 24.0,
+                top: 24.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Top Up KlikPay',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFFD4AF37),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Select Amount',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Quick selection grid
+                  GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 2.5,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [50000, 100000, 200000, 500000].map((amount) {
+                      final bool isSelected = selectedAmount == amount;
+                      return GestureDetector(
+                        onTap: () => setModalState(() => selectedAmount = amount),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF0A0A0A),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.08),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(amount),
+                            style: GoogleFonts.plusJakartaSans(
+                              color: isSelected ? Colors.black : Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Select Payment Method',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPaymentMethodTile(
+                    'Bank Transfer',
+                    Icons.account_balance_outlined,
+                    paymentMethod == 'Bank Transfer',
+                    () => setModalState(() => paymentMethod = 'Bank Transfer'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPaymentMethodTile(
+                    'Credit / Debit Card',
+                    Icons.credit_card_outlined,
+                    paymentMethod == 'Credit / Debit Card',
+                    () => setModalState(() => paymentMethod = 'Credit / Debit Card'),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPaymentMethodTile(
+                    'KlikPay Instant',
+                    Icons.flash_on_rounded,
+                    paymentMethod == 'KlikPay Instant',
+                    () => setModalState(() => paymentMethod = 'KlikPay Instant'),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setModalState(() => isLoading = true);
+                        Future.delayed(const Duration(seconds: 2), () {
+                          // Update balance
+                          userBalanceNotifier.value += selectedAmount;
+                          // Update transactions
+                          final newTx = {
+                            'title': 'Top Up via $paymentMethod',
+                            'subtitle': _getCurrentFormattedDate(),
+                            'value': '+Rp ${NumberFormat.decimalPattern('id').format(selectedAmount)}',
+                            'isNegative': false,
+                            'icon': Icons.arrow_downward_rounded,
+                          };
+                          transactionsNotifier.value = [newTx, ...transactionsNotifier.value];
+                          
+                          setModalState(() {
+                            isLoading = false;
+                            isSuccess = true;
+                          });
+                          
+                          // Auto close after 2 seconds
+                          Future.delayed(const Duration(seconds: 2), () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.of(context).pop();
+                            }
+                          });
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD4AF37),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'Top Up Now',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentMethodTile(String name, IconData icon, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0A0A0A),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFFD4AF37) : Colors.white.withOpacity(0.05),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFFD4AF37), size: 20),
+            const SizedBox(width: 16),
+            Text(
+              name,
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded, color: Color(0xFFD4AF37), size: 20)
+            else
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white30, width: 1.5),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getCurrentFormattedDate() {
+    final now = DateTime.now();
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${now.day} ${months[now.month - 1]}';
+  }
+
+  void _showPayBottomSheet() {
+    bool isScanning = true;
+    bool isConfirming = false;
+    bool isLoading = false;
+    bool isSuccess = false;
+    bool isFailed = false;
+    final int paymentAmount = 85000;
+    final String merchantName = 'The Heritage Club';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF141414),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            if (isScanning) {
+              // Simulating scan for 2 seconds
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted && isScanning) {
+                  setModalState(() {
+                    isScanning = false;
+                    isConfirming = true;
+                  });
+                }
+              });
+
+              return Container(
+                padding: const EdgeInsets.all(24),
+                height: 380,
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Scan QR Code',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: const Color(0xFFD4AF37),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Animated scanner viewport
+                    Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFD4AF37), width: 2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: Icon(
+                              Icons.qr_code_scanner_rounded,
+                              color: Colors.white.withOpacity(0.1),
+                              size: 100,
+                            ),
+                          ),
+                          // Simulated moving laser line
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 1500),
+                            builder: (context, val, child) {
+                              return Align(
+                                alignment: Alignment(0, -1.0 + (val * 2.0)),
+                                child: Container(
+                                  width: 160,
+                                  height: 2,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD4AF37),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFFD4AF37).withOpacity(0.8),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Position QR code inside the frame to pay',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (isConfirming) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Confirm Payment',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: const Color(0xFFD4AF37),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A0A0A),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Pay To',
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 13),
+                              ),
+                              Text(
+                                merchantName,
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: Colors.white10, height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Amount',
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 13),
+                              ),
+                              Text(
+                                NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(paymentAmount),
+                                style: GoogleFonts.plusJakartaSans(color: const Color(0xFFD4AF37), fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: Colors.white10, height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Your Balance',
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 13),
+                              ),
+                              Text(
+                                NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(userBalanceNotifier.value),
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (userBalanceNotifier.value < paymentAmount) {
+                            setModalState(() {
+                              isConfirming = false;
+                              isFailed = true;
+                            });
+                            Future.delayed(const Duration(seconds: 2), () {
+                              if (Navigator.canPop(context)) Navigator.of(context).pop();
+                            });
+                            return;
+                          }
+
+                          setModalState(() {
+                            isConfirming = false;
+                            isLoading = true;
+                          });
+
+                          Future.delayed(const Duration(seconds: 2), () {
+                            userBalanceNotifier.value -= paymentAmount;
+                            
+                            final newTx = {
+                              'title': 'Payment to $merchantName',
+                              'subtitle': _getCurrentFormattedDate(),
+                              'value': '-Rp ${NumberFormat.decimalPattern('id').format(paymentAmount)}',
+                              'isNegative': true,
+                              'icon': Icons.shopping_bag_outlined,
+                            };
+                            transactionsNotifier.value = [newTx, ...transactionsNotifier.value];
+
+                            setModalState(() {
+                              isLoading = false;
+                              isSuccess = true;
+                            });
+
+                            Future.delayed(const Duration(seconds: 2), () {
+                              if (Navigator.canPop(context)) Navigator.of(context).pop();
+                            });
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD4AF37),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Confirm & Pay',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (isLoading) {
+              return SizedBox(
+                height: 300,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Processing Payment...',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (isSuccess) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                height: 320,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFFD4AF37),
+                        size: 64,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Payment Successful!',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Successfully paid ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(paymentAmount)} to $merchantName.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (isFailed) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                height: 320,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.redAccent,
+                        size: 64,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Payment Failed',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Insufficient KlikPay balance. Please top up first.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return const SizedBox();
+          },
+        );
+      },
+    );
+  }
+
+  void _showPromoClaimDialog() {
+    bool isCopied = false;
+    final String promoCode = 'KLIK30';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF141414),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD4AF37).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.card_giftcard_rounded,
+                        color: Color(0xFFD4AF37),
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Promo Code Claimed!',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Use this code during booking checkout to get 30% OFF your KlikCut service.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A0A0A),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withOpacity(0.3),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            promoCode,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFFD4AF37),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: promoCode));
+                              setDialogState(() {
+                                isCopied = true;
+                              });
+                              Future.delayed(const Duration(seconds: 2), () {
+                                if (context.mounted) {
+                                  setDialogState(() {
+                                    isCopied = false;
+                                  });
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isCopied ? Colors.green.withOpacity(0.2) : const Color(0xFFD4AF37).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isCopied ? Colors.green : const Color(0xFFD4AF37),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isCopied ? Icons.check_rounded : Icons.copy_rounded,
+                                    color: isCopied ? Colors.green : const Color(0xFFD4AF37),
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isCopied ? 'Copied' : 'Copy',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: isCopied ? Colors.green : const Color(0xFFD4AF37),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD4AF37),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Done',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // 1. Header Widget
   Widget _buildHeader() {
     return Row(
@@ -567,22 +1392,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Rp 1.450.000',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                  ),
+                ValueListenableBuilder<int>(
+                  valueListenable: userBalanceNotifier,
+                  builder: (context, balance, child) {
+                    return Text(
+                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(balance),
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.black,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    Expanded(child: _buildKlikPayActionButton(Icons.add_circle_outline, 'Top Up')),
+                    Expanded(
+                      child: _buildKlikPayActionButton(
+                        Icons.add_circle_outline,
+                        'Top Up',
+                        () => _showTopUpBottomSheet(),
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildKlikPayActionButton(Icons.qr_code_scanner, 'Pay')),
+                    Expanded(
+                      child: _buildKlikPayActionButton(
+                        Icons.qr_code_scanner,
+                        'Pay',
+                        () => _showPayBottomSheet(),
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildKlikPayActionButton(Icons.history, 'History')),
+                    Expanded(
+                      child: _buildKlikPayActionButton(
+                        Icons.history,
+                        'History',
+                        () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const WalletScreen()),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -593,36 +1445,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildKlikPayActionButton(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.black.withOpacity(0.05),
+  Widget _buildKlikPayActionButton(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.black.withOpacity(0.05),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.08),
-              shape: BoxShape.circle,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.black87, size: 20),
             ),
-            child: Icon(icon, color: Colors.black87, size: 20),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.black87,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.black87,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -972,7 +1827,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () => _showPromoClaimDialog(),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFD4AF37),
               foregroundColor: Colors.black,

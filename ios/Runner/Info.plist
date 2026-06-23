@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BarberKlik memerlukan akses lokasi untuk mencari barbershop terdekat.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>BarberKlik memerlukan akses lokasi untuk mencari barbershop terdekat.</string>
 </dict>
 </plist>

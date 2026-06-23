@@ -7,6 +7,7 @@ import '../main.dart';
 import 'home_screen.dart';
 import 'klikmart_screen.dart';
 import 'queue_status_screen.dart';
+import 'wallet_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -450,6 +451,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         } else if (index == 2) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const QueueStatusScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const WalletScreen()),
           );
         }
       },

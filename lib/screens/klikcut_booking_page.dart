@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../main.dart';
 
 class KlikCutBookingPage extends StatefulWidget {
   const KlikCutBookingPage({super.key});
@@ -11,14 +13,16 @@ class KlikCutBookingPage extends StatefulWidget {
 class _KlikCutBookingPageState extends State<KlikCutBookingPage> {
   String _selectedService = 'Executive Cut';
   String _selectedBarber = 'Hisyam';
-  String _selectedDate = 'Today, 8 June';
+  late String _selectedDate;
   String _selectedTime = '13:00';
 
+  late List<String> _dates;
+
   final List<Map<String, dynamic>> _services = [
-    {'name': 'Executive Cut', 'price': 'Rp 150.000', 'duration': '45 mins'},
-    {'name': 'Classic Cut', 'price': 'Rp 90.000', 'duration': '30 mins'},
-    {'name': 'Signature Shave', 'price': 'Rp 75.000', 'duration': '30 mins'},
-    {'name': 'Hair & Beard Spa', 'price': 'Rp 200.000', 'duration': '60 mins'},
+    {'name': 'Executive Cut', 'price': 'Rp 150.000', 'priceValue': 150000, 'duration': '45 mins'},
+    {'name': 'Classic Cut', 'price': 'Rp 90.000', 'priceValue': 90000, 'duration': '30 mins'},
+    {'name': 'Signature Shave', 'price': 'Rp 75.000', 'priceValue': 75000, 'duration': '30 mins'},
+    {'name': 'Hair & Beard Spa', 'price': 'Rp 200.000', 'priceValue': 200000, 'duration': '60 mins'},
   ];
 
   final List<Map<String, dynamic>> _barbers = [
@@ -42,17 +46,44 @@ class _KlikCutBookingPageState extends State<KlikCutBookingPage> {
     },
   ];
 
-  final List<String> _dates = [
-    'Today, 8 June',
-    'Tomorrow, 9 June',
-    'Wed, 10 June',
-    'Thu, 11 June',
-    'Fri, 12 June'
-  ];
-
   final List<String> _timeSlots = [
     '09:00', '10:30', '11:30', '13:00', '14:30', '16:00', '17:30', '19:00', '20:30'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _dates = _generateDynamicDates();
+    _selectedDate = _dates.first;
+  }
+
+  List<String> _generateDynamicDates() {
+    final List<String> dates = [];
+    final now = DateTime.now();
+    final isEn = appLocaleNotifier.value.languageCode == 'en';
+    
+    final daysOfWeek = isEn 
+        ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        : ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+        
+    final months = isEn
+        ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+        
+    for (int i = 0; i < 5; i++) {
+      final date = now.add(Duration(days: i));
+      String prefix = '';
+      if (i == 0) {
+        prefix = isEn ? 'Today' : 'Hari Ini';
+      } else if (i == 1) {
+        prefix = isEn ? 'Tomorrow' : 'Besok';
+      } else {
+        prefix = daysOfWeek[date.weekday - 1];
+      }
+      dates.add('$prefix, ${date.day} ${months[date.month - 1]}');
+    }
+    return dates;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -367,9 +398,94 @@ class _KlikCutBookingPageState extends State<KlikCutBookingPage> {
       ),
       child: ElevatedButton(
         onPressed: () {
+          final selectedServiceObj = _services.firstWhere((s) => s['name'] == _selectedService);
+          final int servicePrice = selectedServiceObj['priceValue'] as int;
+
+          if (userBalanceNotifier.value < servicePrice) {
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: const Color(0xFF141414),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Insufficient Balance',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Your KlikPay balance is not enough for this booking. Please top up first.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD4AF37),
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'OK',
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
+
+          // Deduct balance
+          userBalanceNotifier.value -= servicePrice;
+
+          // Add to transactions
+          final newTx = {
+            'title': 'KlikCut Booking: $_selectedService',
+            'subtitle': _getCurrentFormattedDate(),
+            'value': '-Rp ${NumberFormat.decimalPattern('id').format(servicePrice)}',
+            'isNegative': true,
+            'icon': Icons.content_cut_rounded,
+          };
+          transactionsNotifier.value = [newTx, ...transactionsNotifier.value];
+
+          // Set active booking
+          activeBookingNotifier.value = {
+            'serviceName': _selectedService,
+            'barberName': _selectedBarber,
+            'date': _selectedDate,
+            'time': _selectedTime,
+            'price': servicePrice,
+            'queueNumber': '#A-15',
+            'estWaitTime': 25,
+          };
+
           // Tampilkan Booking Success dialog
           showDialog(
             context: context,
+            barrierDismissible: false,
             builder: (context) => Dialog(
               backgroundColor: const Color(0xFF141414),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -455,4 +571,14 @@ class _KlikCutBookingPageState extends State<KlikCutBookingPage> {
       ),
     );
   }
+
+  String _getCurrentFormattedDate() {
+    final now = DateTime.now();
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${now.day} ${months[now.month - 1]}';
+  }
 }
+

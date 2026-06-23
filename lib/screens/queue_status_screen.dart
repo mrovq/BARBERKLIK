@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../main.dart';
 import '../l10n/app_localizations.dart';
 import 'home_screen.dart';
 import 'klikmart_screen.dart';
 import 'profile_screen.dart';
+import 'wallet_screen.dart';
+import 'klikcut_booking_page.dart';
 
 class QueueStatusScreen extends StatefulWidget {
   const QueueStatusScreen({super.key});
@@ -57,7 +61,16 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              _buildCurrentSessionCard(),
+              ValueListenableBuilder<Map<String, dynamic>?>(
+                valueListenable: activeBookingNotifier,
+                builder: (context, activeBooking, child) {
+                  if (activeBooking == null) {
+                    return _buildEmptyQueueCard();
+                  } else {
+                    return _buildCurrentSessionCard(activeBooking);
+                  }
+                },
+              ),
               const SizedBox(height: 28),
               _buildNearbyOutletsSection(),
               const SizedBox(height: 100), // Extra space to scroll above navigation bar
@@ -70,7 +83,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
   }
 
   // 2. Current Session Card Widget
-  Widget _buildCurrentSessionCard() {
+  Widget _buildCurrentSessionCard(Map<String, dynamic> activeBooking) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
@@ -120,7 +133,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                   ),
                 ),
                 child: Text(
-                  '#12',
+                  activeBooking['queueNumber'] ?? '#12',
                   style: GoogleFonts.plusJakartaSans(
                     color: const Color(0xFFD4AF37),
                     fontSize: 12,
@@ -131,13 +144,21 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          // Outlet Title
+          // Service Title
           Text(
-            'The Heritage Club',
+            activeBooking['serviceName'] ?? 'KlikCut Service',
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFD4AF37), // Luxury gold
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Barber: ${activeBooking['barberName']} • ${activeBooking['time']} (${activeBooking['date']})',
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white70,
+              fontSize: 12,
             ),
           ),
           const SizedBox(height: 24),
@@ -157,7 +178,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '12',
+                        (activeBooking['queueNumber'] ?? '12').toString().replaceAll('#', ''),
                         style: GoogleFonts.plusJakartaSans(
                           color: const Color(0xFFD4AF37), // Gold/Bronze
                           fontSize: 36,
@@ -188,7 +209,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: '15',
+                              text: (activeBooking['estWaitTime'] ?? 15).toString(),
                               style: GoogleFonts.plusJakartaSans(
                                 color: const Color(0xFFD4AF37), // Gold/Bronze
                                 fontSize: 36,
@@ -226,7 +247,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                 ),
               ),
               Text(
-                '85%',
+                '70%',
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFFD4AF37),
                   fontSize: 12,
@@ -239,7 +260,7 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: const LinearProgressIndicator(
-              value: 0.85,
+              value: 0.70,
               backgroundColor: Color(0xFF0A0A0A),
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
               minHeight: 6,
@@ -257,7 +278,67 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                     border: Border.all(color: Colors.white.withOpacity(0.15)),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: const Color(0xFF141414),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          title: Text(
+                            'Cancel Booking?',
+                            style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          content: Text(
+                            'Are you sure you want to cancel your booking? Your payment of Rp ${NumberFormat.decimalPattern('id').format(activeBooking['price'])} will be fully refunded to your KlikPay Wallet.',
+                            style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('No', style: GoogleFonts.plusJakartaSans(color: Colors.grey)),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                final int refundAmount = activeBooking['price'] as int;
+                                userBalanceNotifier.value += refundAmount;
+                                
+                                final refundTx = {
+                                  'title': 'Refund: KlikCut ${activeBooking['serviceName']}',
+                                  'subtitle': _getCurrentFormattedDate(),
+                                  'value': '+Rp ${NumberFormat.decimalPattern('id').format(refundAmount)}',
+                                  'isNegative': false,
+                                  'icon': Icons.replay_circle_filled_rounded,
+                                };
+                                transactionsNotifier.value = [refundTx, ...transactionsNotifier.value];
+                                
+                                activeBookingNotifier.value = null;
+                                Navigator.of(context).pop();
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: const Color(0xFF141414),
+                                    content: Text(
+                                      'Booking cancelled. Rp ${NumberFormat.decimalPattern('id').format(refundAmount)} refunded!',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: const Color(0xFFD4AF37),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: Text('Yes, Cancel', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white70,
@@ -294,7 +375,108 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: const Color(0xFF141414),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                        ),
+                        builder: (context) {
+                          return Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    width: 40,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'Directions to Outlet',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: const Color(0xFFD4AF37),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.navigation_rounded, color: Color(0xFFD4AF37), size: 24),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'The Heritage Club Outlet',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: Colors.white54,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(color: Colors.white10, height: 28),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Estimated Distance',
+                                      style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 12),
+                                    ),
+                                    Text(
+                                      '1.2 km (approx. 5 mins drive)',
+                                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFD4AF37),
+                                      foregroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Start Navigation',
+                                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD4AF37),
                       foregroundColor: const Color(0xFF0A0A0A),
@@ -320,6 +502,92 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildEmptyQueueCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141414),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.05),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4AF37).withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.calendar_today_rounded,
+              color: Color(0xFFD4AF37),
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'No Active Booking',
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You do not have any active haircut bookings. Tap the button below to book a KlikCut service now.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white54,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const KlikCutBookingPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD4AF37),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(
+                'Book KlikCut Now',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getCurrentFormattedDate() {
+    final now = DateTime.now();
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${now.day} ${months[now.month - 1]}';
   }
 
   // 3. Nearby Outlets Widget List
@@ -536,6 +804,10 @@ class _QueueStatusScreenState extends State<QueueStatusScreen> {
         } else if (index == 1) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const KlikMartScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const WalletScreen()),
           );
         } else if (index == 4) {
           Navigator.of(context).pushReplacement(

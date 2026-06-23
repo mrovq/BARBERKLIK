@@ -11,6 +11,39 @@ final ValueNotifier<Locale> appLocaleNotifier = ValueNotifier<Locale>(const Loca
 // Global ValueNotifier untuk menyimpan data foto profil (bytes) agar real-time di seluruh screen
 final ValueNotifier<Uint8List?> userProfileImageNotifier = ValueNotifier<Uint8List?>(null);
 
+// Global ValueNotifier untuk menyimpan saldo KlikPay Wallet agar sinkron di semua screen
+final ValueNotifier<int> userBalanceNotifier = ValueNotifier<int>(1450000);
+
+// Global ValueNotifier untuk menyimpan riwayat transaksi secara real-time
+final ValueNotifier<List<Map<String, dynamic>>> transactionsNotifier = ValueNotifier<List<Map<String, dynamic>>>([
+  {
+    'title': 'KlikCut Service',
+    'subtitle': '24 Mei',
+    'value': '-Rp 85.000',
+    'isNegative': true,
+    'icon': Icons.content_cut_rounded,
+  },
+  {
+    'title': 'Top Up via Bank',
+    'subtitle': '22 Mei',
+    'value': '+Rp 200.000',
+    'isNegative': false,
+    'icon': Icons.arrow_downward_rounded,
+  },
+  {
+    'title': 'KlikMart: Hair Clay',
+    'subtitle': '20 Mei',
+    'value': '-Rp 120.000',
+    'isNegative': true,
+    'icon': Icons.shopping_bag_outlined,
+  },
+]);
+
+// Global ValueNotifier untuk menyimpan status booking aktif (simulasi antrean)
+final ValueNotifier<Map<String, dynamic>?> activeBookingNotifier = ValueNotifier<Map<String, dynamic>?>(null);
+
+
+
 void main() {
   runApp(const BarberKlikApp());
 }
