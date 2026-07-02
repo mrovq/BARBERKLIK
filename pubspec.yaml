@@ -100,6 +100,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo_barberklik.jpeg"
+  image_path: "assets/images/logobarberklik.jpeg"
   adaptive_icon_background: "#0A0A0A"
-  adaptive_icon_foreground: "assets/images/logo_barberklik.jpeg"
+  adaptive_icon_foreground: "assets/images/logobarberklik.jpeg"
